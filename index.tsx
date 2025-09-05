@@ -87,6 +87,16 @@ const portfolioData = {
         description: 'Designed and fine-tuned a multimodal text-to-image generation system with Stable Diffusion and LoRA on 100,000+ image-caption pairs, leveraging LLAMA 3-enhanced captions to refine facial feature accuracy for forensic sketching applications'
       },
       {
+        name: 'Scalable E-Commerce Microservices',
+        tech: ['Java', 'Spring-boot', 'AWS', 'Docker', 'PostgreSQL', 'Microservices'],
+        description: 'Engineered a cloud-native e-commerce backend with a microservices architecture on AWS. Implemented core services for user authentication, product catalog, and order processing, containerized with Docker for seamless deployment and scalability.'
+      },
+      {
+        name: 'Peer-to-Peer Learning Platform',
+        tech: ['React.js', 'Node.js', 'MongoDB', 'Socket.IO'],
+        description: 'Developed a collaborative online education platform for university students, a key initiative during my time with the Student Technical Community VIT. The platform features real-time peer-to-peer knowledge sharing and a calendar organizer integrated with the academic schedule.'
+      },
+      {
         name: 'Weather Application',
         tech: ['React', 'Node.js', 'Android', 'Highcharts', 'GCP'],
         description: 'Developed a weather website and Android application integrated with Google Maps API to deliver 10-day forecasts and interactive charts for detailed weather analysis and location-based insights.'
@@ -160,8 +170,22 @@ const portfolioData = {
   }
 };
 
+// --- THEME ICONS ---
+const SunIcon: FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5S14.76,7,12,7L12,7z M12,2c-0.55,0-1,0.45-1,1v2c0,0.55,0.45,1,1,1s1-0.45,1-1V3C13,2.45,12.55,2,12,2z M12,20c-0.55,0-1,0.45-1,1v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2C13,20.45,12.55,20,12,20z M4.93,4.93c-0.39-0.39-1.02-0.39-1.41,0s-0.39,1.02,0,1.41l1.41,1.41c0.39,0.39,1.02,0.39,1.41,0s0.39-1.02,0-1.41L4.93,4.93z M17.66,17.66c-0.39-0.39-1.02-0.39-1.41,0s-0.39,1.02,0,1.41l1.41,1.41c0.39,0.39,1.02,0.39,1.41,0s0.39-1.02,0-1.41L17.66,17.66z M2,12c-0.55,0-1,0.45-1,1s0.45,1,1,1h2c0.55,0,1-0.45,1-1s-0.45-1-1-1H2z M20,12c-0.55,0-1,0.45-1,1s0.45,1,1,1h2c0.55,0,1-0.45,1-1s-0.45-1-1-1H20z M6.34,17.66c-0.39-0.39-1.02-0.39-1.41,0s-0.39,1.02,0,1.41l1.41,1.41c0.39,0.39,1.02,0.39,1.41,0s0.39-1.02,0-1.41L6.34,17.66z M19.07,4.93c-0.39-0.39-1.02-0.39-1.41,0s-0.39,1.02,0,1.41l1.41,1.41c0.39,0.39,1.02,0.39,1.41,0s0.39-1.02,0-1.41L19.07,4.93z"></path>
+  </svg>
+);
+
+const MoonIcon: FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M9.5,2c-1.82,0-3.53,0.5-5,1.35c2.99,1.73,5,4.95,5,8.65s-2.01,6.92-5,8.65C5.97,21.5,7.68,22,9.5,22c5.52,0,10-4.48,10-10 S15.02,2,9.5,2z"></path>
+  </svg>
+);
+
+
 // --- THREE.JS BACKGROUND COMPONENT ---
-const ThreeCanvas: FC = () => {
+const ThreeCanvas: FC<{ theme: 'dark' | 'light' }> = ({ theme }) => {
   useEffect(() => {
     const scene = new (window as any).THREE.Scene();
     const camera = new (window as any).THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -171,11 +195,13 @@ const ThreeCanvas: FC = () => {
     });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+
+    const cubeColor = theme === 'light' ? 0x0969da : 0x3fb950;
+    const lightColor = theme === 'light' ? 0x24292f : 0x58a6ff;
 
     const geometry = new (window as any).THREE.BoxGeometry(2.5, 2.5, 2.5);
     const material = new (window as any).THREE.MeshStandardMaterial({
-      color: 0x3fb950,
+      color: cubeColor,
       wireframe: true,
     });
     const cube = new (window as any).THREE.Mesh(geometry, material);
@@ -184,14 +210,15 @@ const ThreeCanvas: FC = () => {
     const ambientLight = new (window as any).THREE.AmbientLight(0xffffff, 0.1);
     scene.add(ambientLight);
 
-    const pointLight = new (window as any).THREE.PointLight(0x58a6ff, 1.5);
+    const pointLight = new (window as any).THREE.PointLight(lightColor, 1.5);
     pointLight.position.set(5, 5, 5);
     scene.add(pointLight);
 
     camera.position.z = 5;
 
+    let animationFrameId: number;
     const animate = () => {
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
       cube.rotation.x += 0.001;
       cube.rotation.y += 0.001;
       renderer.render(scene, camera);
@@ -206,8 +233,12 @@ const ThreeCanvas: FC = () => {
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    
+    return () => {
+        window.removeEventListener('resize', handleResize);
+        cancelAnimationFrame(animationFrameId);
+    }
+  }, [theme]);
 
   return null;
 };
@@ -249,10 +280,38 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({ children, ti
 
 // --- MAIN APP COMPONENT ---
 const App: FC = () => {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (prefersDark) {
+      setTheme('dark');
+    } else {
+      setTheme('light');
+    }
+  }, []);
+
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+
   return (
     <>
-      <ThreeCanvas />
+      <ThreeCanvas theme={theme} />
       <div className="portfolio-container">
+        <button
+          className="theme-toggle"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
         <header className="header">
           <h1>
             {portfolioData.name}
