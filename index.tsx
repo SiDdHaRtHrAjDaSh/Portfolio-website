@@ -214,6 +214,12 @@ const MoonIcon: FC = () => (
   </svg>
 );
 
+const PowerIcon: FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/>
+    </svg>
+);
+
 
 // --- MATRIX BACKGROUND COMPONENT ---
 const MatrixCanvas: FC<{ theme: 'dark' | 'light' }> = ({ theme }) => {
@@ -320,9 +326,52 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = ({ children, ti
   );
 };
 
+// --- LOADING SCREEN COMPONENT ---
+const LoadingScreen: FC = () => {
+  const [lines, setLines] = useState<string[]>([]);
+  const bootSequence = [
+    'INITIALIZING BIOS...',
+    'CHECKING MEMORY: 64KB OK',
+    'LOADING OS FROM C:/DOS...',
+    'SRD-DOS v1.0',
+    'STARTING COMMAND.COM',
+    'LOADING PORTFOLIO.EXE...',
+    'BOOT SEQUENCE COMPLETE.',
+  ];
+
+  useEffect(() => {
+    let isMounted = true;
+    // Fix: Use ReturnType<typeof setTimeout> to get the correct timeout ID type,
+    // which is `number` in browsers, instead of the Node.js-specific `NodeJS.Timeout`.
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    bootSequence.forEach((line, index) => {
+        const timeout = setTimeout(() => {
+            if (isMounted) {
+                setLines(prev => [...prev, line]);
+            }
+        }, 350 * (index + 1));
+        timeouts.push(timeout);
+    });
+
+    return () => {
+        isMounted = false;
+        timeouts.forEach(clearTimeout);
+    };
+  }, []);
+
+  return (
+    <div className="loading-screen">
+      {lines.map((line, i) => <p key={i}>> {line}</p>)}
+      <span className="cursor"></span>
+    </div>
+  );
+};
+
+
 // --- MAIN APP COMPONENT ---
 const App: FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [powerState, setPowerState] = useState<'off' | 'loading' | 'on'>('off');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
@@ -341,143 +390,160 @@ const App: FC = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  const handlePowerToggle = () => {
+    if (powerState === 'off') {
+        setPowerState('loading');
+        setTimeout(() => setPowerState('on'), 3000);
+    } else {
+        setPowerState('off');
+    }
+  };
+
 
   return (
     <>
       <MatrixCanvas theme={theme} />
       <div className="monitor-wrapper">
-        <div className="portfolio-container">
-          <button
-            className="theme-toggle"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-          </button>
-          <header className="header">
-            <h1>
-              {portfolioData.name}
-              <span className="cursor"></span>
-            </h1>
-            <div className="contact-info">
-              <a href={`tel:${portfolioData.contact.phone}`}>{portfolioData.contact.phone}</a>
-              <span>|</span>
-              <a href={`mailto:${portfolioData.contact.email}`}>{portfolioData.contact.email}</a>
-              <span>|</span>
-              <a href={`https://${portfolioData.contact.linkedin}`} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-              <span>|</span>
-              <a href={`https://${portfolioData.contact.github}`} target="_blank" rel="noopener noreferrer">GitHub</a>
-            </div>
-          </header>
-
-          <div className="summary">
-            <p>Artist, software developer, and professional bug creator (and fixer). Fascinated by AI and the magic of backend development. Trying to teach machines to be creative so I can have more coffee breaks.</p>
-          </div>
-
-          <main>
-            <AccordionItem title="> Experience" isOpenDefault={true}>
-              {portfolioData.experience.map((job, index) => (
-                <div className="content-entry" key={index}>
-                  <div className="entry-header">
-                    <h3>{job.title} <span className="company">@ {job.company}</span></h3>
-                    <span className="date">{job.dates}</span>
-                  </div>
-                  <div className="entry-location">{job.location}</div>
-                  <div className="entry-description">
-                    <ul>
-                      {job.description.map((point, i) => <li key={i}>{point}</li>)}
-                    </ul>
-                  </div>
+        <div className={`portfolio-container ${powerState !== 'off' ? 'is-on' : 'is-off'}`}>
+          {powerState === 'loading' && <LoadingScreen />}
+          {powerState === 'on' && (
+            <>
+              <button
+                className="theme-toggle"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+              </button>
+              <header className="header">
+                <h1>
+                  {portfolioData.name}
+                  <span className="cursor"></span>
+                </h1>
+                <div className="contact-info">
+                  <a href={`tel:${portfolioData.contact.phone}`}>{portfolioData.contact.phone}</a>
+                  <span>|</span>
+                  <a href={`mailto:${portfolioData.contact.email}`}>{portfolioData.contact.email}</a>
+                  <span>|</span>
+                  <a href={`https://${portfolioData.contact.linkedin}`} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                  <span>|</span>
+                  <a href={`https://${portfolioData.contact.github}`} target="_blank" rel="noopener noreferrer">GitHub</a>
                 </div>
-              ))}
-            </AccordionItem>
+              </header>
 
-            <AccordionItem title="> Volunteer and Leadership">
-              {portfolioData.volunteerAndLeadership.map((item, index) => (
-                <div className="content-entry" key={index}>
-                  <div className="entry-header">
-                    <h3>{item.title} <span className="company">@ {item.organization}</span></h3>
-                    <span className="date">{item.dates}</span>
-                  </div>
-                  <div className="entry-location">{item.location}</div>
-                  <div className="entry-description">
-                    <ul>
-                      {item.description.map((point, i) => <li key={i}>{point}</li>)}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </AccordionItem>
-            
-            <AccordionItem title="> Projects">
-              {portfolioData.projects.map((project, index) => (
-                <div className="content-entry" key={index}>
-                  <div className="entry-header">
-                    <h3>{project.name}</h3>
-                  </div>
-                  <div className="entry-description">
-                    <p>{project.description}</p>
-                    <div className="project-tech">
-                      {project.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </AccordionItem>
-
-            <AccordionItem title="> Publications">
-              {portfolioData.publications.map((publication, index) => (
-                <div className="content-entry" key={index}>
-                  <div className="entry-header">
-                    <h3>
-                      <a href={publication.link} target="_blank" rel="noopener noreferrer">
-                        {publication.name}
-                      </a>
-                    </h3>
-                  </div>
-                  <div className="entry-location">{publication.journal}</div>
-                  <div className="entry-description">
-                    <p>{publication.description}</p>
-                    <div className="project-tech">
-                      {publication.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </AccordionItem>
-
-            <AccordionItem title="> Skills">
-              <div className="skills-container">
-                  {Object.entries(portfolioData.skills).map(([category, skills]) => (
-                      <div className="skills-category" key={category}>
-                          <h4>{category}</h4>
-                          <div className="skills-grid">
-                              {skills.map(skill => <span className="skill-tag" key={skill}>{skill}</span>)}
-                          </div>
-                      </div>
-                  ))}
+              <div className="summary">
+                <p>Artist, software developer, and professional bug creator (and fixer). Fascinated by AI and the magic of backend development. Trying to teach machines to be creative so I can have more coffee breaks.</p>
               </div>
-            </AccordionItem>
 
-            <AccordionItem title="> Education">
-              {portfolioData.education.map((edu, index) => (
-                <div className="content-entry" key={index}>
-                  <div className="entry-header">
-                    <h3>{edu.institution}</h3>
-                    <span className="date">{edu.dates}</span>
+              <main>
+                <AccordionItem title="> Experience" isOpenDefault={true}>
+                  {portfolioData.experience.map((job, index) => (
+                    <div className="content-entry" key={index}>
+                      <div className="entry-header">
+                        <h3>{job.title} <span className="company">@ {job.company}</span></h3>
+                        <span className="date">{job.dates}</span>
+                      </div>
+                      <div className="entry-location">{job.location}</div>
+                      <div className="entry-description">
+                        <ul>
+                          {job.description.map((point, i) => <li key={i}>{point}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </AccordionItem>
+
+                <AccordionItem title="> Volunteer and Leadership">
+                  {portfolioData.volunteerAndLeadership.map((item, index) => (
+                    <div className="content-entry" key={index}>
+                      <div className="entry-header">
+                        <h3>{item.title} <span className="company">@ {item.organization}</span></h3>
+                        <span className="date">{item.dates}</span>
+                      </div>
+                      <div className="entry-location">{item.location}</div>
+                      <div className="entry-description">
+                        <ul>
+                          {item.description.map((point, i) => <li key={i}>{point}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </AccordionItem>
+                
+                <AccordionItem title="> Projects">
+                  {portfolioData.projects.map((project, index) => (
+                    <div className="content-entry" key={index}>
+                      <div className="entry-header">
+                        <h3>{project.name}</h3>
+                      </div>
+                      <div className="entry-description">
+                        <p>{project.description}</p>
+                        <div className="project-tech">
+                          {project.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </AccordionItem>
+
+                <AccordionItem title="> Publications">
+                  {portfolioData.publications.map((publication, index) => (
+                    <div className="content-entry" key={index}>
+                      <div className="entry-header">
+                        <h3>
+                          <a href={publication.link} target="_blank" rel="noopener noreferrer">
+                            {publication.name}
+                          </a>
+                        </h3>
+                      </div>
+                      <div className="entry-location">{publication.journal}</div>
+                      <div className="entry-description">
+                        <p>{publication.description}</p>
+                        <div className="project-tech">
+                          {publication.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </AccordionItem>
+
+                <AccordionItem title="> Skills">
+                  <div className="skills-container">
+                      {Object.entries(portfolioData.skills).map(([category, skills]) => (
+                          <div className="skills-category" key={category}>
+                              <h4>{category}</h4>
+                              <div className="skills-grid">
+                                  {skills.map(skill => <span className="skill-tag" key={skill}>{skill}</span>)}
+                              </div>
+                          </div>
+                      ))}
                   </div>
-                  <p>{edu.degree}</p>
-                  <div className="entry-location">{edu.location}</div>
-                </div>
-              ))}
-            </AccordionItem>
-          </main>
-          
-          <footer className="footer">
-            <p>Created with AI</p>
-          </footer>
+                </AccordionItem>
+
+                <AccordionItem title="> Education">
+                  {portfolioData.education.map((edu, index) => (
+                    <div className="content-entry" key={index}>
+                      <div className="entry-header">
+                        <h3>{edu.institution}</h3>
+                        <span className="date">{edu.dates}</span>
+                      </div>
+                      <p>{edu.degree}</p>
+                      <div className="entry-location">{edu.location}</div>
+                    </div>
+                  ))}
+                </AccordionItem>
+              </main>
+              
+              <footer className="footer">
+                <p>Created with AI</p>
+              </footer>
+            </>
+          )}
         </div>
+        <button className="power-button" onClick={handlePowerToggle} aria-label="Toggle Power" title="Toggle Power">
+            <PowerIcon />
+        </button>
         <div className="monitor-stand"></div>
       </div>
     </>
