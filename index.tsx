@@ -79,6 +79,16 @@ const portfolioData = {
         'Translated design mockups into fully functional web application modules using Vue.js and Bootstrap',
       ],
     },
+    {
+      company: 'ATMSI Pvt Ltd',
+      title: 'Internship',
+      dates: 'Oct 2020 - Jan 2021',
+      location: 'Remote',
+      description: [
+        'Designed and developed the ATMSI Website with various UI features and elements',
+        'Set up the companies IT infrastructure from scratch including mail servers, web hosting, databases and product literatures',
+      ],
+    },
   ],
   projects: [
       {
@@ -87,7 +97,22 @@ const portfolioData = {
         description: 'Designed and fine-tuned a multimodal text-to-image generation system with Stable Diffusion and LoRA on 100,000+ image-caption pairs, leveraging LLAMA 3-enhanced captions to refine facial feature accuracy for forensic sketching applications'
       },
       {
-        name: 'Scalable E-Commerce Microservices',
+        name: 'Weather Application',
+        tech: ['React', 'Node.js', 'Android', 'Highcharts', 'GCP'],
+        description: 'Developed a weather website and Android application integrated with Google Maps API to deliver 10-day forecasts and interactive charts for detailed weather analysis and location-based insights.'
+      },
+      {
+        name: 'Workplus - The AI powered fitness app',
+        tech: ['Tensorflow', 'Android', 'PoseNet'],
+        description: 'Engineered a fitness application utilizing Flutter, integrating the POSENET model for real-time posture monitoring via camera, providing users with valuable insights such as workout accuracy, posture, and count, and achieving an average accuracy of 91% in tracking various exercises'
+      },
+      {
+        name: 'Skin Cancer Prediction',
+        tech: ['Python', 'Django', 'Keras'],
+        description: 'Innovated a custom deep learning algorithm integrating two MobileNet models to enhance feature extraction and improves performance, achieving a triple prediction accuracy of 98.41%'
+      },
+      {
+        name: 'The tronics store - E-Commerce Microservices',
         tech: ['Java', 'Spring-boot', 'AWS', 'Docker', 'PostgreSQL', 'Microservices'],
         description: 'Engineered a cloud-native e-commerce backend with a microservices architecture on AWS. Implemented core services for user authentication, product catalog, and order processing, containerized with Docker for seamless deployment and scalability.'
       },
@@ -95,16 +120,6 @@ const portfolioData = {
         name: 'Peer-to-Peer Learning Platform',
         tech: ['React.js', 'Node.js', 'MongoDB', 'Socket.IO'],
         description: 'Developed a collaborative online education platform for university students, a key initiative during my time with the Student Technical Community VIT. The platform features real-time peer-to-peer knowledge sharing and a calendar organizer integrated with the academic schedule.'
-      },
-      {
-        name: 'Weather Application',
-        tech: ['React', 'Node.js', 'Android', 'Highcharts', 'GCP'],
-        description: 'Developed a weather website and Android application integrated with Google Maps API to deliver 10-day forecasts and interactive charts for detailed weather analysis and location-based insights.'
-      },
-      {
-        name: 'Skin Cancer Prediction',
-        tech: ['Python', 'Django', 'Keras'],
-        description: 'Innovated a custom deep learning algorithm integrating two MobileNet models to enhance feature extraction and improves performance, achieving a triple prediction accuracy of 98.41%'
       },
   ],
   volunteerAndLeadership: [
@@ -167,7 +182,23 @@ const portfolioData = {
     'AI/ML': ['Tensorflow', 'Scikit', 'Pytorch', 'Nltk'],
     'Databases': ['Postgres', 'MySQL', 'MongoDB'],
     'Visualization': ['Tableau', 'Highcharts', 'Grafana'],
-  }
+  },
+  publications: [
+    {
+      name: 'Exercise Tracking with Deep Learning',
+      journal: 'International Journal of Research and Analytical Reviews (IJRAR)',
+      link: 'https://www.ijrar.org/papers/IJRAR21C1276.pdf',
+      tech: ['Deep Learning'],
+      description: 'Work plus is basically an AI powered fitness app that predominantly focuses on improving the health and posture of its users distinctly during the time of Covid 19 pandemic. Essentially, most corporate companies have started adopting work from home for their employees, for most of the time they are bound to be stuck on a chair looking at a screen which causes bad posture and various other health problems. Our aim is just to remind people how important their health is and they can achieve a superior health without even having anyone near them even when they are quarantined with the use of our app. Using a highly efficient AI algorithm, we have made sure that the energy and time that any user invests in improving their lifestyle with our app, does not go in vain and they are served with a quality service.'
+    },
+    {
+      name: 'Skin Cancer Analysis with Deep Learning',
+      link: 'https://www.ijraset.com/fileserve.php?FID=36761',
+      journal: 'International Journal for Research in Applied Science & Engineering Technology (IJRASET)',
+      tech: ['Deep Learning'],
+      description: 'Skin diseases are some of the most common diseases and are often difficult to diagnose than other diseases. Skin diseases may be caused by fungus, bacteria, allergic reaction, viruses, cancer etc. The technological advancement in laser diagnosis and Photonics based medical diagnosis has made it possible to diagnose the skin diseases much more quickly and accurately. But the cost of diagnostics is time-consuming and very expensive. Hence, we can use image processing techniques to help build automated preliminary detection system for such dermatological diagnostics'
+    },
+  ],
 };
 
 // --- THEME ICONS ---
@@ -333,7 +364,7 @@ const App: FC = () => {
         </div>
 
         <main>
-          <AccordionItem title="> cat ./Experience" isOpenDefault={true}>
+          <AccordionItem title="> Experience" isOpenDefault={true}>
             {portfolioData.experience.map((job, index) => (
               <div className="content-entry" key={index}>
                 <div className="entry-header">
@@ -350,7 +381,7 @@ const App: FC = () => {
             ))}
           </AccordionItem>
 
-          <AccordionItem title="> ./volunteer_leadership.sh">
+          <AccordionItem title="> Volunteer and Leadership">
             {portfolioData.volunteerAndLeadership.map((item, index) => (
               <div className="content-entry" key={index}>
                 <div className="entry-header">
@@ -367,7 +398,7 @@ const App: FC = () => {
             ))}
           </AccordionItem>
           
-          <AccordionItem title="> ls ./Projects">
+          <AccordionItem title="> Projects">
             {portfolioData.projects.map((project, index) => (
               <div className="content-entry" key={index}>
                 <div className="entry-header">
@@ -383,7 +414,28 @@ const App: FC = () => {
             ))}
           </AccordionItem>
 
-          <AccordionItem title="> get-skills">
+          <AccordionItem title="> Publications">
+            {portfolioData.publications.map((publication, index) => (
+              <div className="content-entry" key={index}>
+                <div className="entry-header">
+                   <h3>
+                     <a href={publication.link} target="_blank" rel="noopener noreferrer">
+                       {publication.name}
+                     </a>
+                   </h3>
+                </div>
+                <div className="entry-location">{publication.journal}</div>
+                <div className="entry-description">
+                  <p>{publication.description}</p>
+                   <div className="project-tech">
+                    {publication.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
+                   </div>
+                </div>
+              </div>
+            ))}
+          </AccordionItem>
+
+          <AccordionItem title="> Skills">
             <div className="skills-container">
                 {Object.entries(portfolioData.skills).map(([category, skills]) => (
                     <div className="skills-category" key={category}>
@@ -396,7 +448,7 @@ const App: FC = () => {
             </div>
           </AccordionItem>
 
-          <AccordionItem title="> open Education.log">
+          <AccordionItem title="> Education">
              {portfolioData.education.map((edu, index) => (
               <div className="content-entry" key={index}>
                 <div className="entry-header">
