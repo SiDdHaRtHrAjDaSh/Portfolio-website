@@ -215,63 +215,74 @@ const MoonIcon: FC = () => (
 );
 
 
-// --- THREE.JS BACKGROUND COMPONENT ---
-const ThreeCanvas: FC<{ theme: 'dark' | 'light' }> = ({ theme }) => {
+// --- MATRIX BACKGROUND COMPONENT ---
+const MatrixCanvas: FC<{ theme: 'dark' | 'light' }> = ({ theme }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
-    const scene = new (window as any).THREE.Scene();
-    const camera = new (window as any).THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new (window as any).THREE.WebGLRenderer({
-      canvas: document.querySelector('#bg-canvas'),
-      alpha: true,
-    });
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    const cubeColor = theme === 'light' ? 0x0969da : 0x3fb950;
-    const lightColor = theme === 'light' ? 0x24292f : 0x58a6ff;
-
-    const geometry = new (window as any).THREE.BoxGeometry(2.5, 2.5, 2.5);
-    const material = new (window as any).THREE.MeshStandardMaterial({
-      color: cubeColor,
-      wireframe: true,
-    });
-    const cube = new (window as any).THREE.Mesh(geometry, material);
-    scene.add(cube);
-    
-    const ambientLight = new (window as any).THREE.AmbientLight(0xffffff, 0.1);
-    scene.add(ambientLight);
-
-    const pointLight = new (window as any).THREE.PointLight(lightColor, 1.5);
-    pointLight.position.set(5, 5, 5);
-    scene.add(pointLight);
-
-    camera.position.z = 5;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     let animationFrameId: number;
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      cube.rotation.x += 0.001;
-      cube.rotation.y += 0.001;
-      renderer.render(scene, camera);
+    let drops: number[];
+    let columns: number;
+    const fontSize = 16;
+    const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+    const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const nums = '0123456789';
+    const alphabet = katakana + latin + nums;
+    
+    const setup = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        columns = Math.floor(canvas.width / fontSize);
+        drops = Array(columns).fill(1).map(() => Math.floor(Math.random() * canvas.height));
+    };
+    
+    setup();
+
+    const draw = () => {
+      const primaryColor = theme === 'light' ? '#0969da' : '#3fb950';
+      const backgroundColor = theme === 'light' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(13, 17, 23, 0.1)';
+
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = primaryColor;
+      ctx.font = `${fontSize}px 'Fira Code', monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+      animationFrameId = requestAnimationFrame(draw);
     };
 
-    animate();
+    draw();
 
     const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      cancelAnimationFrame(animationFrameId);
+      setup();
+      draw();
     };
 
     window.addEventListener('resize', handleResize);
     
     return () => {
-        window.removeEventListener('resize', handleResize);
-        cancelAnimationFrame(animationFrameId);
-    }
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
   }, [theme]);
 
-  return null;
+  return <canvas id="bg-canvas" ref={canvasRef}></canvas>;
 };
 
 // --- ACCORDION COMPONENT ---
@@ -333,138 +344,141 @@ const App: FC = () => {
 
   return (
     <>
-      <ThreeCanvas theme={theme} />
-      <div className="portfolio-container">
-        <button
-          className="theme-toggle"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-        >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
-        <header className="header">
-          <h1>
-            {portfolioData.name}
-            <span className="cursor"></span>
-          </h1>
-          <div className="contact-info">
-            <a href={`tel:${portfolioData.contact.phone}`}>{portfolioData.contact.phone}</a>
-            <span>|</span>
-            <a href={`mailto:${portfolioData.contact.email}`}>{portfolioData.contact.email}</a>
-            <span>|</span>
-            <a href={`https://${portfolioData.contact.linkedin}`} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <span>|</span>
-            <a href={`https://${portfolioData.contact.github}`} target="_blank" rel="noopener noreferrer">GitHub</a>
-          </div>
-        </header>
-
-        <div className="summary">
-          <p>Artist, software developer, and professional bug creator (and fixer). Fascinated by AI and the magic of backend development. Trying to teach machines to be creative so I can have more coffee breaks.</p>
-        </div>
-
-        <main>
-          <AccordionItem title="> Experience" isOpenDefault={true}>
-            {portfolioData.experience.map((job, index) => (
-              <div className="content-entry" key={index}>
-                <div className="entry-header">
-                  <h3>{job.title} <span className="company">@ {job.company}</span></h3>
-                  <span className="date">{job.dates}</span>
-                </div>
-                <div className="entry-location">{job.location}</div>
-                <div className="entry-description">
-                  <ul>
-                    {job.description.map((point, i) => <li key={i}>{point}</li>)}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </AccordionItem>
-
-          <AccordionItem title="> Volunteer and Leadership">
-            {portfolioData.volunteerAndLeadership.map((item, index) => (
-              <div className="content-entry" key={index}>
-                <div className="entry-header">
-                  <h3>{item.title} <span className="company">@ {item.organization}</span></h3>
-                  <span className="date">{item.dates}</span>
-                </div>
-                <div className="entry-location">{item.location}</div>
-                <div className="entry-description">
-                  <ul>
-                    {item.description.map((point, i) => <li key={i}>{point}</li>)}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </AccordionItem>
-          
-          <AccordionItem title="> Projects">
-            {portfolioData.projects.map((project, index) => (
-              <div className="content-entry" key={index}>
-                <div className="entry-header">
-                   <h3>{project.name}</h3>
-                </div>
-                <div className="entry-description">
-                  <p>{project.description}</p>
-                   <div className="project-tech">
-                    {project.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
-                   </div>
-                </div>
-              </div>
-            ))}
-          </AccordionItem>
-
-          <AccordionItem title="> Publications">
-            {portfolioData.publications.map((publication, index) => (
-              <div className="content-entry" key={index}>
-                <div className="entry-header">
-                   <h3>
-                     <a href={publication.link} target="_blank" rel="noopener noreferrer">
-                       {publication.name}
-                     </a>
-                   </h3>
-                </div>
-                <div className="entry-location">{publication.journal}</div>
-                <div className="entry-description">
-                  <p>{publication.description}</p>
-                   <div className="project-tech">
-                    {publication.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
-                   </div>
-                </div>
-              </div>
-            ))}
-          </AccordionItem>
-
-          <AccordionItem title="> Skills">
-            <div className="skills-container">
-                {Object.entries(portfolioData.skills).map(([category, skills]) => (
-                    <div className="skills-category" key={category}>
-                        <h4>{category}</h4>
-                        <div className="skills-grid">
-                            {skills.map(skill => <span className="skill-tag" key={skill}>{skill}</span>)}
-                        </div>
-                    </div>
-                ))}
+      <MatrixCanvas theme={theme} />
+      <div className="monitor-wrapper">
+        <div className="portfolio-container">
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </button>
+          <header className="header">
+            <h1>
+              {portfolioData.name}
+              <span className="cursor"></span>
+            </h1>
+            <div className="contact-info">
+              <a href={`tel:${portfolioData.contact.phone}`}>{portfolioData.contact.phone}</a>
+              <span>|</span>
+              <a href={`mailto:${portfolioData.contact.email}`}>{portfolioData.contact.email}</a>
+              <span>|</span>
+              <a href={`https://${portfolioData.contact.linkedin}`} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <span>|</span>
+              <a href={`https://${portfolioData.contact.github}`} target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
-          </AccordionItem>
+          </header>
 
-          <AccordionItem title="> Education">
-             {portfolioData.education.map((edu, index) => (
-              <div className="content-entry" key={index}>
-                <div className="entry-header">
-                  <h3>{edu.institution}</h3>
-                   <span className="date">{edu.dates}</span>
+          <div className="summary">
+            <p>Artist, software developer, and professional bug creator (and fixer). Fascinated by AI and the magic of backend development. Trying to teach machines to be creative so I can have more coffee breaks.</p>
+          </div>
+
+          <main>
+            <AccordionItem title="> Experience" isOpenDefault={true}>
+              {portfolioData.experience.map((job, index) => (
+                <div className="content-entry" key={index}>
+                  <div className="entry-header">
+                    <h3>{job.title} <span className="company">@ {job.company}</span></h3>
+                    <span className="date">{job.dates}</span>
+                  </div>
+                  <div className="entry-location">{job.location}</div>
+                  <div className="entry-description">
+                    <ul>
+                      {job.description.map((point, i) => <li key={i}>{point}</li>)}
+                    </ul>
+                  </div>
                 </div>
-                <p>{edu.degree}</p>
-                 <div className="entry-location">{edu.location}</div>
+              ))}
+            </AccordionItem>
+
+            <AccordionItem title="> Volunteer and Leadership">
+              {portfolioData.volunteerAndLeadership.map((item, index) => (
+                <div className="content-entry" key={index}>
+                  <div className="entry-header">
+                    <h3>{item.title} <span className="company">@ {item.organization}</span></h3>
+                    <span className="date">{item.dates}</span>
+                  </div>
+                  <div className="entry-location">{item.location}</div>
+                  <div className="entry-description">
+                    <ul>
+                      {item.description.map((point, i) => <li key={i}>{point}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </AccordionItem>
+            
+            <AccordionItem title="> Projects">
+              {portfolioData.projects.map((project, index) => (
+                <div className="content-entry" key={index}>
+                  <div className="entry-header">
+                    <h3>{project.name}</h3>
+                  </div>
+                  <div className="entry-description">
+                    <p>{project.description}</p>
+                    <div className="project-tech">
+                      {project.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </AccordionItem>
+
+            <AccordionItem title="> Publications">
+              {portfolioData.publications.map((publication, index) => (
+                <div className="content-entry" key={index}>
+                  <div className="entry-header">
+                    <h3>
+                      <a href={publication.link} target="_blank" rel="noopener noreferrer">
+                        {publication.name}
+                      </a>
+                    </h3>
+                  </div>
+                  <div className="entry-location">{publication.journal}</div>
+                  <div className="entry-description">
+                    <p>{publication.description}</p>
+                    <div className="project-tech">
+                      {publication.tech.map(t => <span className="skill-tag" key={t}>{t}</span>)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </AccordionItem>
+
+            <AccordionItem title="> Skills">
+              <div className="skills-container">
+                  {Object.entries(portfolioData.skills).map(([category, skills]) => (
+                      <div className="skills-category" key={category}>
+                          <h4>{category}</h4>
+                          <div className="skills-grid">
+                              {skills.map(skill => <span className="skill-tag" key={skill}>{skill}</span>)}
+                          </div>
+                      </div>
+                  ))}
               </div>
-            ))}
-          </AccordionItem>
-        </main>
-        
-        <footer className="footer">
-          <p>Created with AI</p>
-        </footer>
+            </AccordionItem>
+
+            <AccordionItem title="> Education">
+              {portfolioData.education.map((edu, index) => (
+                <div className="content-entry" key={index}>
+                  <div className="entry-header">
+                    <h3>{edu.institution}</h3>
+                    <span className="date">{edu.dates}</span>
+                  </div>
+                  <p>{edu.degree}</p>
+                  <div className="entry-location">{edu.location}</div>
+                </div>
+              ))}
+            </AccordionItem>
+          </main>
+          
+          <footer className="footer">
+            <p>Created with AI</p>
+          </footer>
+        </div>
+        <div className="monitor-stand"></div>
       </div>
     </>
   );

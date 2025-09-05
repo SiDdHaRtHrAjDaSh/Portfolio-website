@@ -7,7 +7,7 @@
   --green: #3fb950;
   --border-color: #30363d;
   --secondary-text: #8b949e;
-  --container-bg: rgba(13, 17, 23, 0.8);
+  --container-bg: rgba(13, 17, 23, 0.9);
   --accordion-bg: rgba(48, 54, 61, 0.5);
   --accordion-hover-bg: rgba(48, 54, 61, 0.8);
   --font-family: 'Fira Code', monospace;
@@ -20,7 +20,7 @@
   --green: #1f883d;
   --border-color: #d0d7de;
   --secondary-text: #57606a;
-  --container-bg: rgba(255, 255, 255, 0.8);
+  --container-bg: rgba(255, 255, 255, 0.9);
   --accordion-bg: rgba(246, 248, 250, 0.5);
   --accordion-hover-bg: rgba(246, 248, 250, 0.8);
 }
@@ -37,7 +37,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-family);
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow: hidden; /* Hide body scrollbars */
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -53,21 +53,83 @@ body {
 #root {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 1rem;
+}
+
+.monitor-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .portfolio-container {
   width: 100%;
-  max-width: 900px;
   background-color: var(--container-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: 20px solid #1c1c1c;
+  border-bottom-width: 50px;
+  border-radius: 15px;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7), 0 10px 20px rgba(0, 0, 0, 0.5);
   padding: 2rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   position: relative;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+/* Scrollbar styling for webkit browsers */
+.portfolio-container::-webkit-scrollbar {
+  width: 10px;
+}
+.portfolio-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.portfolio-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 20px;
+  border: 3px solid var(--container-bg);
+}
+
+/* Power Light */
+.portfolio-container::before {
+  content: '';
+  position: absolute;
+  bottom: -35px;
+  right: 25px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--green);
+  box-shadow: 0 0 5px var(--green), 0 0 10px var(--green);
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+.monitor-stand {
+  width: 250px;
+  height: 30px;
+  background: linear-gradient(to top, #222, #444);
+  position: relative;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+.monitor-stand::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 350px;
+  height: 20px;
+  background: linear-gradient(to top, #111, #333);
+  border-radius: 10px;
 }
 
 .theme-toggle {
@@ -309,8 +371,30 @@ body {
 }
 
 @media (max-width: 768px) {
+    #root {
+      align-items: flex-start;
+    }
     .portfolio-container {
-        padding: 1.5rem 1rem;
+      padding: 1.5rem 1rem;
+      border-width: 10px;
+      border-bottom-width: 25px;
+      border-radius: 10px;
+      max-height: none;
+    }
+    .portfolio-container::before {
+      bottom: -18px;
+      right: 15px;
+      width: 8px;
+      height: 8px;
+    }
+    .monitor-stand {
+      width: 150px;
+      height: 15px;
+    }
+    .monitor-stand::after {
+      width: 200px;
+      height: 10px;
+      bottom: -10px;
     }
     .theme-toggle {
         top: 0.75rem;
