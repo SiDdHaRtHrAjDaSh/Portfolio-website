@@ -364,8 +364,6 @@ const LoadingScreen: FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    // Fix: Use ReturnType<typeof setTimeout> to get the correct timeout ID type,
-    // which is `number` in browsers, instead of the Node.js-specific `NodeJS.Timeout`.
     const timeouts: ReturnType<typeof setTimeout>[] = [];
     bootSequence.forEach((line, index) => {
         const timeout = setTimeout(() => {
@@ -390,11 +388,47 @@ const LoadingScreen: FC = () => {
   );
 };
 
+// --- SHUTDOWN SCREEN COMPONENT ---
+const ShutdownScreen: FC = () => {
+  const [lines, setLines] = useState<string[]>([]);
+  const shutdownSequence = [
+    'CLOSING ALL APPLICATIONS...',
+    'SAVING SESSION STATE...',
+    'SYSTEM WILL NOW SHUT DOWN.',
+    'GOODBYE.',
+  ];
+
+  useEffect(() => {
+    let isMounted = true;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    shutdownSequence.forEach((line, index) => {
+        const timeout = setTimeout(() => {
+            if (isMounted) {
+                setLines(prev => [...prev, line]);
+            }
+        }, 500 * (index + 1));
+        timeouts.push(timeout);
+    });
+
+    return () => {
+        isMounted = false;
+        timeouts.forEach(clearTimeout);
+    };
+  }, []);
+
+  return (
+    <div className="shutdown-screen">
+      {lines.map((line, i) => <p key={i}> {line}</p>)}
+      {lines.length > 0 && <span className="cursor"></span>}
+    </div>
+  );
+};
+
 
 // --- MAIN APP COMPONENT ---
 const App: FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [powerState, setPowerState] = useState<'off' | 'loading' | 'on'>(
+  const [powerState, setPowerState] = useState<'off' | 'loading' | 'on' | 'shutting-down'>(
     window.innerWidth <= 768 ? 'loading' : 'off'
   );
 
@@ -422,14 +456,21 @@ const App: FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    if (powerState === 'shutting-down') {
+      const timer = setTimeout(() => {
+        setPowerState('off');
+      }, 3000); // Wait for shutdown animation to finish
+      return () => clearTimeout(timer);
+    }
   }, [powerState]);
 
   const handlePowerToggle = () => {
     if (powerState === 'off') {
         setPowerState('loading');
-    } else {
-        setPowerState('off');
+    } else if (powerState === 'on') {
+        setPowerState('shutting-down');
     }
+    // Do nothing if loading or shutting down to prevent interruption
   };
 
 
@@ -439,6 +480,7 @@ const App: FC = () => {
       <div className="monitor-wrapper">
         <div className={`portfolio-container ${powerState !== 'off' ? 'is-on' : 'is-off'}`}>
           {powerState === 'loading' && <LoadingScreen />}
+          {powerState === 'shutting-down' && <ShutdownScreen />}
           {powerState === 'on' && (
             <>
               <button
