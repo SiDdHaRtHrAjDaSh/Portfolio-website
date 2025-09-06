@@ -361,7 +361,7 @@ const LoadingScreen: FC = () => {
 
   return (
     <div className="loading-screen">
-      {lines.map((line, i) => <p key={i}>> {line}</p>)}
+      {lines.map((line, i) => <p key={i}> {line}</p>)}
       <span className="cursor"></span>
     </div>
   );
