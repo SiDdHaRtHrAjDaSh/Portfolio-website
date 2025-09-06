@@ -394,7 +394,9 @@ const LoadingScreen: FC = () => {
 // --- MAIN APP COMPONENT ---
 const App: FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [powerState, setPowerState] = useState<'off' | 'loading' | 'on'>('off');
+  const [powerState, setPowerState] = useState<'off' | 'loading' | 'on'>(
+    window.innerWidth <= 768 ? 'loading' : 'off'
+  );
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
@@ -413,10 +415,18 @@ const App: FC = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (powerState === 'loading') {
+      const timer = setTimeout(() => {
+        setPowerState('on');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [powerState]);
+
   const handlePowerToggle = () => {
     if (powerState === 'off') {
         setPowerState('loading');
-        setTimeout(() => setPowerState('on'), 3000);
     } else {
         setPowerState('off');
     }
