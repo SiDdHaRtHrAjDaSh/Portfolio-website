@@ -233,43 +233,66 @@ const MatrixCanvas: FC<{ theme: 'dark' | 'light' }> = ({ theme }) => {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let drops: number[];
-    let columns: number;
-    const fontSize = 16;
-    const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
-    const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const nums = '0123456789';
-    const alphabet = katakana + latin + nums;
+
+    class Particle {
+      x: number;
+      y: number;
+      size: number;
+      life: number;
+      maxLife: number;
+
+      constructor(width: number, height: number) {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 2 + 1; // size between 1 and 3px
+        this.maxLife = Math.random() * 100 + 80; // life between 80-180 frames for a slow effect
+        this.life = this.maxLife;
+      }
+
+      updateAndDraw(ctx: CanvasRenderingContext2D, primaryColor: string) {
+        this.life -= 1;
+
+        // Use a sine wave for smooth fade in and out
+        const progress = (this.maxLife - this.life) / this.maxLife;
+        const opacity = Math.sin(progress * Math.PI);
+
+        ctx.fillStyle = primaryColor;
+        ctx.globalAlpha = opacity;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        
+        return this.life > 0;
+      }
+    }
     
+    let particles: Particle[] = [];
+
     const setup = () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        columns = Math.floor(canvas.width / fontSize);
-        drops = Array(columns).fill(1).map(() => Math.floor(Math.random() * canvas.height));
+        particles = [];
     };
     
     setup();
 
     const draw = () => {
       const primaryColor = theme === 'light' ? '#0969da' : '#3fb950';
-      const backgroundColor = theme === 'light' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(13, 17, 23, 0.1)';
+      // Use a lower alpha for a subtle trail effect
+      const backgroundColor = theme === 'light' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(13, 17, 23, 0.15)';
 
       ctx.fillStyle = backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = primaryColor;
-      ctx.font = `${fontSize}px 'Fira Code', monospace`;
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
+      
+      // Add new particles at a controlled, slow rate
+      if (particles.length < 150 && Math.random() > 0.85) { 
+          particles.push(new Particle(canvas.width, canvas.height));
       }
-      animationFrameId = requestAnimationFrame(draw);
+
+      // Update, draw, and remove dead particles
+      particles = particles.filter(p => p.updateAndDraw(ctx, primaryColor));
+      
+      ctx.globalAlpha = 1; // Reset alpha for next frame
+
+      animationFrameId = window.requestAnimationFrame(draw);
     };
 
     draw();
