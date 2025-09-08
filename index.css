@@ -11,6 +11,8 @@
   --container-bg: rgba(13, 17, 23, 0.9);
   --accordion-bg: rgba(48, 54, 61, 0.5);
   --accordion-hover-bg: rgba(48, 54, 61, 0.8);
+  --solid-accordion-bg: rgb(48, 54, 61);
+  --solid-accordion-hover-bg: rgb(68, 76, 86);
   --font-family: 'Fira Code', monospace;
 }
 
@@ -25,6 +27,8 @@
   --container-bg: rgba(255, 255, 255, 0.9);
   --accordion-bg: rgba(246, 248, 250, 0.5);
   --accordion-hover-bg: rgba(246, 248, 250, 0.8);
+  --solid-accordion-bg: rgb(246, 248, 250);
+  --solid-accordion-hover-bg: rgb(238, 240, 242);
 }
 
 
@@ -464,6 +468,23 @@ body {
     .theme-toggle {
         top: 1rem;
         right: 1rem;
+    }
+    .theme-toggle-floating {
+      position: fixed;
+      bottom: 2rem;
+      right: 1.5rem;
+      top: auto;
+      left: auto;
+      background-color: var(--solid-accordion-bg);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 1px var(--border-color);
+      z-index: 1000;
+      cursor: grab;
+    }
+    .theme-toggle-floating:hover {
+      background-color: var(--solid-accordion-hover-bg);
+    }
+    .theme-toggle-floating:active {
+        cursor: grabbing;
     }
     .header h1 {
         font-size: 1.8rem;

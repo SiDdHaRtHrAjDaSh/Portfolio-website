@@ -432,6 +432,88 @@ const App: FC = () => {
     window.innerWidth <= 768 ? 'loading' : 'off'
   );
 
+  const themeToggleRef = useRef<HTMLButtonElement>(null);
+  const dragInfo = useRef({
+    isDragging: false,
+    hasMoved: false,
+    dragOffset: { x: 0, y: 0 },
+  });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (themeToggleRef.current) {
+        themeToggleRef.current.style.top = '';
+        themeToggleRef.current.style.left = '';
+        themeToggleRef.current.style.bottom = '';
+        themeToggleRef.current.style.right = '';
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleDragMove = (e: MouseEvent | TouchEvent) => {
+    if (!dragInfo.current.isDragging) return;
+
+    dragInfo.current.hasMoved = true;
+    const point = 'touches' in e ? e.touches[0] : e;
+    const button = themeToggleRef.current;
+    if (!button) return;
+
+    let newX = point.clientX - dragInfo.current.dragOffset.x;
+    let newY = point.clientY - dragInfo.current.dragOffset.y;
+
+    const buttonWidth = button.offsetWidth;
+    const buttonHeight = button.offsetHeight;
+    const { innerWidth: winWidth, innerHeight: winHeight } = window;
+
+    if (newX < 0) newX = 0;
+    if (newY < 0) newY = 0;
+    if (newX + buttonWidth > winWidth) newX = winWidth - buttonWidth;
+    if (newY + buttonHeight > winHeight) newY = winHeight - buttonHeight;
+
+    button.style.left = `${newX}px`;
+    button.style.top = `${newY}px`;
+    button.style.right = 'auto';
+    button.style.bottom = 'auto';
+  };
+
+  const handleDragEnd = () => {
+    dragInfo.current.isDragging = false;
+    window.removeEventListener('mousemove', handleDragMove);
+    window.removeEventListener('touchmove', handleDragMove);
+    window.removeEventListener('mouseup', handleDragEnd);
+    window.removeEventListener('touchend', handleDragEnd);
+  };
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isMobile || !themeToggleRef.current) return;
+    
+    dragInfo.current.isDragging = true;
+    dragInfo.current.hasMoved = false;
+
+    const point = 'touches' in e ? e.touches[0] : e;
+    const rect = themeToggleRef.current.getBoundingClientRect();
+
+    dragInfo.current.dragOffset = {
+      x: point.clientX - rect.left,
+      y: point.clientY - rect.top,
+    };
+    
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('touchmove', handleDragMove);
+    window.addEventListener('mouseup', handleDragEnd);
+    window.addEventListener('touchend', handleDragEnd);
+  };
+  
+  const handleThemeToggleClick = () => {
+    if (dragInfo.current.hasMoved) return;
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
@@ -484,8 +566,11 @@ const App: FC = () => {
           {powerState === 'on' && (
             <>
               <button
-                className="theme-toggle"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                ref={themeToggleRef}
+                className={`theme-toggle ${isMobile ? 'theme-toggle-floating' : ''}`}
+                onClick={handleThemeToggleClick}
+                onMouseDown={handleDragStart}
+                onTouchStart={handleDragStart}
                 aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               >
